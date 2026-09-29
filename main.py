@@ -2206,8 +2206,9 @@ def normalize_relay_links() -> int:
             if link.get(key) != value:
                 link[key] = value
                 changed += 1
-        if relay and link.get("path") != f"/ws/{cuuid}":
-            link["path"] = f"/ws/{cuuid}"
+        desired_path = f"/http-ws/{cuuid}" if relay_iid and is_default_http_ws_inbound(INBOUNDS.get(str(relay_iid))) else f"/ws/{cuuid}"
+        if relay and link.get("path") != desired_path:
+            link["path"] = desired_path
             changed += 1
     return changed
 
@@ -2614,7 +2615,7 @@ def generate_user_config(user_id: str, user: dict, inbound_id: str = None, addr:
     elif is_default_http_ws_inbound(inbound):
         panel_domain = _safe_host(SETTINGS.get("domain"), get_host())
         host = addr_ip or panel_domain
-        port = addr_port or str((inbound or {}).get("external_port") or 80)
+        port = addr_port or "80"
         transport = "ws"
         security = "none"
     else:
@@ -2657,7 +2658,9 @@ def generate_user_config(user_id: str, user: dict, inbound_id: str = None, addr:
         # Managed default WS inbounds use /ws/{uuid}; other WS inbounds keep
         # their own configured path if present.
         configured_path = str((inbound or {}).get("path") or "").strip()
-        if is_default_tls_ws_inbound(inbound) or not configured_path:
+        if is_default_http_ws_inbound(inbound):
+            ws_path = f"/http-ws/{config_uuid}"
+        elif is_default_tls_ws_inbound(inbound) or not configured_path:
             ws_path = f"/ws/{config_uuid}"
         else:
             ws_path = configured_path if configured_path.startswith("/") else f"/{configured_path}"

@@ -4189,6 +4189,15 @@ async def _forward_plain_http_ws_to_tls(ws: WebSocket, uuid: str):
                 pass
 
 
+@app.websocket("/http-ws/{uuid}")
+async def http_ws_uuid_handler(ws: WebSocket, uuid: str):
+    """
+    Plain HTTP+WS entry for the HTTP WS inbound.
+    Railway/edge may terminate HTTP before reaching the container, so this
+    explicit path avoids relying only on forwarded port headers.
+    """
+    await _forward_plain_http_ws_to_tls(ws, uuid)
+
 @app.websocket("/ws/{uuid}")
 async def ws_uuid_handler(ws: WebSocket, uuid: str):
     # /ws/live is registered later — handle it here since param route matches first

@@ -4207,6 +4207,23 @@ async def ws_uuid_handler(ws: WebSocket, uuid: str):
     if uuid == "live":
         await websocket_live_stats(ws)
         return
+
+    # Backward compatibility: old HTTP+WS subscriptions were generated with
+    # /ws/{uuid}. If the link belongs to the managed HTTP+WS inbound, forward
+    # it to the TLS relay instead of rejecting it.
+    try:
+        m = _get_main()
+        async with m.LINKS_LOCK:
+            _link = m.LINKS.get(uuid)
+        if _link:
+            _rid = str(_link.get("relay_inbound_id") or "")
+            _rib = m.INBOUNDS.get(_rid) if _rid else None
+            if is_default_http_ws_inbound(_rib):
+                await _forward_plain_http_ws_to_tls(ws, uuid)
+                return
+    except Exception:
+        pass
+
     if await _is_plain_http_ws_entry(ws):
         await _forward_plain_http_ws_to_tls(ws, uuid)
         return

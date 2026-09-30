@@ -572,6 +572,18 @@ html[lang="en"] body, html[lang="en"] .sidebar, html[lang="en"] .panel, html[lan
 .stat-v{font-size:26px;font-weight:800;color:var(--neon)}
 .stat-l{font-size:11px;color:var(--txt2);margin-top:4px}
 
+/* Features */
+#tab-features .spd-acc-head{font-size:13px;font-weight:600;font-family:inherit}
+#tab-features .spd-acc-head .spd-acc-title{display:flex;align-items:center;gap:8px}
+#tab-features .spd-acc-head .spd-acc-arrow{flex-shrink:0}
+#tab-features .ios-switch{margin-right:6px}
+#tab-features .feat-desc{font-size:12px;color:var(--txt2);line-height:1.7;margin-bottom:8px}
+#tab-features .feat-details{border-top:1px solid var(--border);padding-top:8px}
+#tab-features .feat-details ul{margin:6px 0 4px 16px;padding:0;font-size:11px;color:var(--txt2);line-height:1.7}
+#tab-features .feat-details li{margin:0;padding-left:8px}
+#tab-features .feat-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+#tab-features .features-grid{display:none}
+
 /* Buttons */
 /* Neutral controls for the entire Inbounds workflow.
    Keep all action buttons visually consistent with the rest of the panel. */
@@ -789,11 +801,6 @@ tr{animation:fadeIn .3s ease}
 }
 .ib-pick.selected .ib-pick-check{background:var(--gradient);border-color:transparent;color:#fff;animation:scaleIn .25s ease}
 .ib-pick-check .material-symbols-outlined{font-size:14px}
-.ib-managed{display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:2px 6px;border:1px solid var(--border);border-radius:999px;font-size:9px;line-height:1;color:var(--txt2);vertical-align:middle}
-.ib-forward-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border:1px solid var(--border);border-radius:999px;font:700 9px/1 ui-monospace,SFMono-Regular,Menlo,monospace;direction:ltr;color:var(--txt2);background:var(--input-bg)}
-.ib-forward-box{margin:10px 0;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--bg2)}
-.ib-forward-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.ib-forward-label{font-size:11px;color:var(--txt2)}
 
 /* Country tick chips — per-country toggle (replaces the Ctrl multi-select). */
 .country-tick{
@@ -1321,6 +1328,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
             <span class="nav-ic"><span class="material-symbols-outlined" style="font-size:18px">smart_toy</span></span>
             <span data-i18n="bot">Bot</span>
           </div>
+          <div class="nav-item" onclick="switchTab('features',this)">
+            <span class="nav-ic"><span class="material-symbols-outlined" style="font-size:18px">bolt</span></span>
+            <span data-i18n="features">Features</span>
+          </div>
           <div class="nav-item" onclick="switchTab('settings',this)">
             <span class="nav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></span>
             <span data-i18n="settings">تنظیمات</span>
@@ -1389,7 +1400,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
               <span data-i18n="newInbound">اینباند جدید</span>
             </button>
           </div>
-          <div class="px-hint">اینباندهای پیش‌فرض TLS + WS و HTTP + WS به‌صورت خودکار ساخته می‌شوند. HTTP + WS روی پورت عمومی 80 قرار دارد و WebSocket آن داخل پنل به 443 فوروارد می‌شود.</div>
+          <div class="px-hint">اینباند جدید ایجاد کنید یا اینباندهای موجود را ویرایش کنید. Config، Telegram Proxy پشتیبانی می‌شوند.</div>
           <div id="inbounds-list"><div class="empty" data-i18n="loading">در حال بارگذاری...</div></div>
         </div>
 
@@ -1931,6 +1942,38 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
         </div>
       </div>
 
+<!-- FEATURES TAB -->
+      <div class="tab-content hidden" id="tab-features">
+        <div class="panel">
+          <div class="panel-h" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+            <span class="glow" data-i18n="features">Features</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button id="feat-update-btn" class="btn btn-sm btn-g" onclick="featSync()"><span data-i18n="featUpdate">به‌روزرسانی</span></button>
+              <button id="feat-sync-btn" class="btn btn-sm btn-g" onclick="featRepoDialog()"><span data-i18n="featRepo">Repo</span></button>
+            </div>
+          </div>
+          <p style="font-size:12px;color:var(--txt2);line-height:1.8;margin-bottom:12px" data-i18n="featuresSub">پلاگین‌های فعال تمام کانفیگ‌ها را بازنویسی می‌کنند — بدون Rebuild، با یک کلیک فعال/غیرفعال می‌شوند.</p>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+            <input id="feat-url" class="inp" style="flex:1;min-width:220px" placeholder="https://raw.githubusercontent.com/.../plugins.json" data-i18n-placeholder="featUrlPh">
+            <button class="btn btn-p" onclick="featInstallByUrl()"><span data-i18n="featInstallByUrl">افزودن از URL</span></button>
+          </div>
+          <div id="feat-repo-hint" style="display:none;font-size:11px;color:var(--txt2);margin-bottom:10px;padding:7px 10px;border:1px dashed var(--border);border-radius:10px"></div>
+
+          <div id="feat-list" style="display:flex;flex-direction:column;gap:10px;margin-top:6px"><div class="empty" data-i18n="loading">در حال بارگذاری...</div></div>
+
+          <div class="panel" style="margin-top:16px">
+            <div class="panel-h" data-i18n="featRawJson">پلاگین از JSON</div>
+            <textarea id="feat-raw" class="inp" rows="10" style="width:100%;resize:vertical;font-family:monospace;font-size:11px" placeholder='{"apiVersion":"spiderpanel.plugin/v1","id":"my-plugin","name":"My plugin","hooks":{"config":[{"match":{"security":"tls"},"set":{"sni":"example.com"}}]}}'></textarea>
+            <div id="feat-raw-msg" style="font-size:11px;margin-top:6px"></div>
+            <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+              <button class="btn btn-p" onclick="featSaveRaw()"><span data-i18n="featSave">ذخیره پلاگین</span></button>
+              <button class="btn btn-g" onclick="featValidateRaw()"><span data-i18n="featValidate">بررسی JSON</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /content -->
   </div><!-- /main-area -->
 </div><!-- /app-wrap -->
@@ -2012,10 +2055,33 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <div id="ib-tls-fields">
     <div class="f-g"><label data-i18n="securityType">امنیت</label><select id="ib-security" onchange="onSecurityChange()">
       <option value="tls">TLS</option>
-      <option value="none">None (HTTP)</option>
       <option value="reality">Reality</option>
+      <option value="none">بدون TLS</option>
     </select></div>
-    <div style="font-size:10px;color:var(--txt2);margin-bottom:10px">پروتکل اینباند VLESS است؛ تنها امنیت را انتخاب کنید (TLS یا Reality).</div>
+
+    <div class="f-g"><label>پروتکل کانفیگ</label><select id="ib-protocol" onchange="onProtocolChange()">
+      <option value="vless">VLESS</option>
+      <option value="vmess">VMess</option>
+      <option value="trojan">Trojan</option>
+      <option value="shadowsocks">Shadowsocks</option>
+    </select></div>
+    <div class="px-hint" style="font-size:10px;margin-bottom:10px">
+      پروتکل فقط «ظاهر» لینک صادرشده را عوض می‌کند — سرور و پورت و UUID و مسیر
+      همه یکی هستند. پروتکل‌های vmess / trojan / shadowsocks همگی توسط Xray
+      سرو می‌شوند، نه رله.
+    </div>
+    <div class="f-g" id="ib-ss-method-wrap" style="display:none">
+      <label>Shadowsocks Cipher</label>
+      <select id="ib-ss-method">
+        <option value="aes-256-gcm">aes-256-gcm</option>
+        <option value="aes-128-gcm">aes-128-gcm</option>
+        <option value="chacha20-poly1305">chacha20-poly1305</option>
+        <option value="chacha20-ietf-poly1305">chacha20-ietf-poly1305</option>
+        <option value="2022-blake3-aes-128-gcm">2022-blake3-aes-128-gcm</option>
+        <option value="2022-blake3-aes-256-gcm">2022-blake3-aes-256-gcm</option>
+      </select>
+    </div>
+    <div style="font-size:10px;color:var(--txt2);margin-bottom:10px">امنیت (TLS / Reality / بدون) و ترنسمیشن را جداگانه انتخاب کنید.</div>
 
     <!-- Reality-only external address -->
     <div id="ib-external-address-fields" class="hidden">
@@ -2028,14 +2094,28 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     <div id="ib-reality-fields" class="hidden">
       <div class="divider"></div>
       <div style="font-size:11px;color:var(--neon);font-weight:700;margin-bottom:8px" data-i18n="realitySettings">تنظیمات Reality</div>
-      <div class="f-g"><label>SNI (Server Name / Destination)</label>
+
+      <!-- SNI and DEST are two DIFFERENT things in Xray Reality and must never
+           share one input: SNI is the name the CLIENT puts in its ClientHello
+           (the spoof), DEST is the real server the SERVER dials as the
+           impersonation target. Collapsing them into one field silently made
+           every dest change rewrite the client's SNI, so a client-side SNI
+           override could never survive an edit. -->
+      <div class="f-g"><label>Client SNI <span style="font-weight:400;color:var(--txt2)">(serverNames)</span></label>
         <div style="display:flex;gap:6px;align-items:flex-end">
           <input type="text" id="ib-sni" value="" dir="ltr" placeholder="مثلاً www.google.com" style="flex:1">
           <button type="button" class="btn btn-sm btn-b" onclick="snPickFastest()" title="سریع‌ترین SNI از sni_reality.txt" style="border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
           </button>
         </div>
+        <div class="px-hint" style="font-size:10px;margin-top:4px">آن‌چه کلاینت در ClientHello می‌فرستد. در لینک کانفیگ <code dir="ltr">sni=</code> و در Xray <code dir="ltr">serverNames</code> می‌شود. باید داخل این لیست باشد وگرنه Xray اتصال را REALITY نمی‌داند.</div>
       </div>
+
+      <div class="f-g"><label>Dest (server target)</label>
+        <input type="text" id="ib-dest" value="" dir="ltr" placeholder="www.microsoft.com:443" style="width:100%">
+        <div class="px-hint" style="font-size:10px;margin-top:4px">سرور واقعی که سمت سرور به آن وصل می‌شود (<code dir="ltr">host:port</code>). در Xray <code dir="ltr">realitySettings.target</code>. جداست و با SNI عوض نمی‌شود.</div>
+      </div>
+
       <div class="f-r">
         <div class="f-g"><label>Private Key (x25519)</label><input type="text" id="ib-privkey" dir="ltr" data-i18n-placeholder="autoGen" placeholder="تولید خودکار"></div>
         <div class="f-g"><label>Public Key</label><input type="text" id="ib-pubkey" dir="ltr" data-i18n-placeholder="autoGen" placeholder="تولید خودکار" readonly></div>
@@ -2063,20 +2143,32 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
       <div class="f-g"><label data-i18n="network">نوع انتقال (Transport)</label><select id="ib-network" onchange="onNetworkChange()">
         <option value="tcp">TCP</option>
         <option value="ws">WebSocket</option>
+        <option value="httpupgrade">HTTPUpgrade</option>
         <option value="xhttp">XHTTP</option>
         <option value="grpc">gRPC</option>
+        <option value="http">HTTP (h2)</option>
+        <option value="kcp">mKCP</option>
       </select></div>
+      <!-- Path hint: the panel fills the canonical /all/{uuid} or /reality/{uuid}
+           template automatically; {uuid} is replaced by each user's real UUID. -->
+      <div class="px-hint" id="ib-path-hint" style="margin:-4px 0 8px">مسیر پیش‌فرض خودکار: <code dir="ltr">/all/{uuid}</code> برای TLS و <code dir="ltr">/reality/{uuid}</code> برای Reality. مقدار خالی = پیش‌فرض.</div>
       <!-- WS fields -->
-      <div id="ib-ws-fields" class="hidden"><div class="f-g"><label>Path</label><input type="text" id="ib-wspath" value="/" dir="ltr"></div></div>
+      <div id="ib-ws-fields" class="hidden"><div class="f-g"><label>Path</label><input type="text" id="ib-wspath" value="/all/{uuid}" dir="ltr" placeholder="/all/{uuid}"></div></div>
+      <!-- HTTPUpgrade fields -->
+      <div id="ib-httpupgrade-fields" class="hidden"><div class="f-g"><label>Path</label><input type="text" id="ib-hupath" value="/all/{uuid}" dir="ltr" placeholder="/all/{uuid}"></div></div>
       <!-- XHTTP fields -->
       <div id="ib-xhttp-fields" class="hidden">
-        <div class="f-g"><label>Path</label><input type="text" id="ib-xhttppath" value="/" dir="ltr"></div>
+        <div class="f-g"><label>Path</label><input type="text" id="ib-xhttppath" value="/all/{uuid}/" dir="ltr" placeholder="/all/{uuid}/"></div>
         <div class="f-r">
-          <div class="f-g"><label>Mode</label><select id="ib-xhttp-mode"><option value="auto">auto</option><option value="packet-up">packet-up</option><option value="stream-one">stream-one</option></select></div>
+          <div class="f-g"><label>Mode</label><select id="ib-xhttp-mode"><option value="auto">auto</option><option value="packet-up">packet-up</option><option value="stream-up">stream-up</option><option value="stream-one">stream-one</option></select></div>
         </div>
       </div>
       <!-- gRPC fields -->
-      <div id="ib-grpc-fields" class="hidden"><div class="f-g"><label data-i18n="serviceName">Service Name</label><input type="text" id="ib-grpc-svc" value="grpc" dir="ltr"></div></div>
+      <div id="ib-grpc-fields" class="hidden"><div class="f-g"><label data-i18n="serviceName">Service Name</label><input type="text" id="ib-grpc-svc" value="all/{uuid}" dir="ltr" placeholder="all/{uuid}"></div></div>
+      <!-- HTTP (h2) fields -->
+      <div id="ib-http-fields" class="hidden"><div class="f-g"><label>Path</label><input type="text" id="ib-httppath" value="/all/{uuid}" dir="ltr" placeholder="/all/{uuid}"></div></div>
+      <!-- mKCP fields -->
+      <div id="ib-kcp-fields" class="hidden"><div class="f-g"><label>Seed</label><input type="text" id="ib-kcp-seed" value="all" dir="ltr" placeholder="all"></div></div>
     </div>
 
     <div class="modal-btns">
@@ -2129,10 +2221,10 @@ var selectedTheme = localStorage.getItem('spider-theme') || 'dark';
 var LANG = localStorage.getItem('spider-lang') || 'fa';
 var I18N = {
   fa: {
-    'dash': 'داشبورد', 'navGroup': 'مدیریت', 'advanced': 'پیشرفته', 'networkTotal': 'مجموع ارسال + دریافت', 'users': 'کاربران', 'inbounds': 'اینباندها', 'scanner': 'اسکنر IP', 'worker': 'Worker', 'settings': 'تنظیمات', 'contact': 'Contact Me', 'logout': 'خروج',
+    'dash': 'داشبورد', 'navGroup': 'مدیریت', 'advanced': 'پیشرفته', 'networkTotal': 'مجموع ارسال + دریافت', 'users': 'کاربران', 'inbounds': 'اینباندها', 'scanner': 'اسکنر IP', 'worker': 'Worker', 'settings': 'تنظیمات', 'contact': 'Contact Me', 'features': 'قابلیت‌ها', 'logout': 'خروج',
     'workerSetupTip': 'پنل را به Cloudflare متصل کنید تا یک پروژه Pages اختصاصی ساخته شود، worker.js داخل آن Deploy شود و یک KV اختصاصی به آن متصل شود.', 'cfToken': 'Cloudflare API Token', 'getToken': 'گرفتن توکن', 'cfAccountId': 'Account ID', 'cfWorkerName': 'Worker Name', 'cfWorkerDomain': 'Worker Domain', 'createNewWorker': 'ساخت Worker جدید', 'cfConnect': 'اتصال و Deploy', 'connected': 'متصل', 'disconnected': 'قطع', 'workerStatus': 'وضعیت', 'remoteStatus': 'وضعیت ریموت', 'lastHeartbeat': 'آخرین Heartbeat', 'workerId': 'Pages Project', 'kvId': 'KV ID', 'onlineUsers': 'کاربران آنلاین', 'workerTraffic': 'مصرف Worker', 'workerUrl': 'Worker URL', 'lastSync': 'آخرین Sync', 'lastError': 'آخرین خطا', 'proxyPool': 'Proxy IP Pool', 'addProxy': 'افزودن کشور', 'workerSettings': 'تنظیمات Worker', 'removeConn': 'حذف اتصال Worker', 'noProxyYet': 'هنوز کشوری اضافه نکرده‌اید', 'connecting': 'در حال ساخت...', 'workerConnected': 'Worker جدید ساخته و Deploy شد', 'syncing': 'در حال Sync...', 'synced': 'Sync شد', 'confirmRemoveWorker': 'اتصال Worker حذف شود؟', 'workerRemoved': 'اتصال Worker حذف شد', 'proxyCodePrompt': 'کد کشور (مثلا de):', 'proxyCountryPrompt': 'نام کشور:', 'proxyHostPrompt': 'آدرس Proxy IP (مثلا de.example.com):', 'proxyPortPrompt': 'پورت Proxy IP:', 'proxySaved': 'کشور ذخیره و Worker بروزرسانی شد', 'confirmDelProxy': 'این کشور حذف شود؟', 'proxyDeleted': 'کشور حذف شد', 'workerFillAll': 'همه فیلدها را پر کنید', 'workerProxyEnabled': 'Worker Proxy IP', 'workerProxyNone': 'بدون Proxy', 'workerRouteTip': 'کانفیگ کاربر روی دامنه Pages با مسیر /ws/{uuid} ساخته می‌شود و از Railway عبور نمی‌کند.', 'workerAutoName': 'یک پروژه Pages جدید با نام تصادفی (spider-xxxxxx) و KV اختصاصی ساخته می‌شود — نیازی به ورود نام نیست.', 'proxySource': 'منبع پروکسی روزانه', 'autoSyncHourly': 'بروزرسانی خودکار (ساعتی)', 'updateNow': 'بروزرسانی از منبع', 'updatingFromSource': 'در حال بروزرسانی از منبع', 'sourceUpdated': 'بروزرسانی شد', 'sourceError': 'خطا در بروزرسانی منبع', 'countries': 'کشور', 'syncsDone': 'تعداد بروزرسانی‌ها', 'pickCountry': 'یک کشور انتخاب کنید',
     'tab.dash': 'داشبورد', 'tab.users': 'مدیریت کاربران', 'tab.inbounds': 'مدیریت اینباندها', 'tab.scanner': 'اسکنر آی‌پی', 'tab.settings': 'تنظیمات',
-    'inboundFixedHint': 'فقط اینباندهای پیش‌فرض پنل استفاده می‌شوند. WS/TLS به‌صورت خودکار با دامنه اصلی پنل آماده است؛ Reality را با دامنه و پورت خودتان تکمیل کنید (کلید pbk به‌صورت خودکار ساخته می‌شود).', 'inboundFixed': 'افزودن اینباند غیرفعال است — فقط اینباندهای پیش‌فرض.', 'inboundAuto': 'این اینباند خودکار است و نیازی به تنظیم ندارد.', 'httpWsForwarding': 'فوروارد پورت HTTP + WS', 'httpWsForwardingHint': 'پورت عمومی 80 فقط ورودی WebSocket است و داخل SpiderPanel به اتصال TLS روی 443 فوروارد می‌شود.',
+    'inboundFixedHint': 'فقط اینباندهای پیش‌فرض پنل استفاده می‌شوند. WS/TLS به‌صورت خودکار با دامنه اصلی پنل آماده است؛ Reality را با دامنه و پورت خودتان تکمیل کنید (کلید pbk به‌صورت خودکار ساخته می‌شود).', 'inboundFixed': 'افزودن اینباند غیرفعال است — فقط اینباندهای پیش‌فرض.', 'inboundAuto': 'این اینباند خودکار است و نیازی به تنظیم ندارد.',
     'newUser': 'کاربر جدید', 'newInbound': 'اینباند جدید', 'domain': 'دامنه',
     'loading': 'در حال بارگذاری...', 'noUsers': 'هیچ کاربری وجود ندارد', 'noInbounds': 'هیچ اینباندی وجود ندارد', 'errLoadUsers': 'خطا در بارگذاری کاربران', 'errLoadInbounds': 'خطا در بارگذاری اینباندها', 'errLoadStats': 'خطا در بارگذاری آمار',
     'live': '● LIVE', 'liveBadge': 'LIVE', 'cloudflareTitle': 'Cloudflare', 'railwayTitle': 'Railway', 'tcpTitle': 'TCP', 'advancedTitle': 'پیشرفته', 'sniTitle': 'SNI', 'workerMainTitle': 'Worker',
@@ -2146,6 +2238,7 @@ var I18N = {
     'red': 'قرمز', 'green': 'سبز', 'blue': 'آبی',
     'panelMusic': 'Panel Music', 'bgMusic': 'Background Music', 'toggleMusic': 'روشن/خاموش', 'changePassword': 'Change Password', 'curPass': 'رمز فعلی', 'newPass': 'رمز جدید', 'changePassBtn': 'تغییر رمز',
     'contactSub': 'برای پشتیبانی و همکاری با من در ارتباط باشید',
+    'featuresSub': 'پلاگین‌های فعال تمام کانفیگ‌ها را بازنویسی می‌کنند — بدون Rebuild، با یک کلیک فعال/غیرفعال می‌شوند.', 'featOn': 'پلاگین فعال شد', 'featOff': 'پلاگین غیرفعال شد', 'featUpdate': 'به‌روزرسانی', 'featRepo': 'Repo', 'featUrlPh': 'آدرس فایل plugins.json یا یک ریپازیتوری', 'featInstallByUrl': 'افزودن از URL', 'featNone': 'هنوز پلاگینی نصب نشده — از URL بالا اضافه کنید یا JSON را پایین تایپ کنید.', 'featRawJson': 'پلاگین از JSON', 'featSave': 'ذخیره پلاگین', 'featValidate': 'بررسی JSON', 'featUsers': 'مدیریت کاربران', 'featUsersD': 'ساخت و مدیریت کاربر، حجم، محدودیت، لینک و عملیات حساب', 'featSub': 'اشتراک', 'featSubD': 'صفحه اشتراک، لینک کانفیگ، QR Code و کپی سریع', 'featNodes': 'نودها', 'featNodesD': 'مدیریت نود، بررسی سلامت، Refresh و Sync', 'featScanner': 'اسکنر IP', 'featScannerD': 'بررسی TCP، IP، SNI و نتایج قابل کپی', 'featBot': 'ربات تلگرام', 'featBotD': 'مدیریت Bot، کانال و فرایندهای فروش', 'featSell': 'ربات فروش', 'featSellD': 'پلن، رسید، تأیید دستی و تحویل Subscription', 'featExpire': 'انقضا', 'featExpireD': 'حذف و پاک‌سازی حساب‌های منقضی و اطلاع‌رسانی', 'featTools': 'ابزارها', 'featToolsD': 'Worker، Tunnel، Runtime و ابزارهای کمکی',
     'createUser': 'ایجاد کاربر جدید', 'editUser': 'ویرایش کاربر', 'username': 'نام کاربری', 'conn': 'اتصال همزمان', 'volume': 'حجم', 'unit': 'واحد', 'expire': 'اعتبار', 'day': 'روز', 'month': 'ماه',
     'inboundsMulti': 'اینباندها (چندتایی)', 'noInboundOpt': 'اینباندی وجود ندارد',
     'inboundPickHint': 'برای هر اینباند، گزینه‌های مخصوصش نمایش داده می‌شود: Worker → انتخاب کشور؛ VLESS غیرپیش‌فرض → Cloudflare و Railway؛ Reality → بدون گزینه.',
@@ -2168,7 +2261,7 @@ var I18N = {
     'extDomain': 'External Domain', 'extPortCfg': 'External Port', 'extDomainPlace': 'دامنه خارجی برای کانفیگ کلاینت', 'commaSep': 'با کاما جدا کنید',
     'intPort': 'پورت اصلی (پورتی که سرور روی آن گوش میدهد)', 'extPortCfg2': 'پورت خارجی (کانفیگ)', 'portHint': 'پورت داخلی = پورتی که Xray روی آن گوش میدهد. پورت خارجی = پورتی که در کانفیگ ظاهر میشود (آدرس کانفیگ: domain:external_port).',
     'network': 'شبکه', 'serviceName': 'Service Name', 'createInbound': 'ایجاد اینباند', 'editInbound': 'ویرایش اینباند', 'inboundCreated': 'اینباند با موفقیت ذخیره شد',
-    'config': 'کانفیگ', 'copy': 'کپی', 'close': 'بستن', 'copied': 'کانفیگ کپی شد', 'noCfg': 'کانفیگی موجود نیست', 'errCopy': 'خطا در کپی', 'notFound': 'یافت نشد', 'delete': 'حذف', 'edit': 'ویرایش', 'unlimited': 'نامحدود', 'expired': 'منقضی', 'daysUnit': ' روز', 'default': 'پیش‌فرض', 'usersCount': 'کاربران', 'secNetwork': 'شبکه', 'security': 'امنیت', 'encryption': 'Encryption', 'action': 'عملیات', 'expiry': 'انقضا', 'connTh': 'اتصال',
+    'config': 'کانفیگ', 'copy': 'کپی', 'close': 'بستن', 'copied': 'کانفیگ کپی شد', 'noCfg': 'کانفیگی موجود نیست', 'errCopy': 'خطا در کپی', 'notFound': 'یافت نشد', 'delete': 'حذف', 'edit': 'ویرایش', 'unlimited': 'نامحدود', 'expired': 'منقضی', 'daysUnit': ' روز', 'default': 'پیش‌فرض', 'usersCount': 'کاربران', 'secNetwork': 'شبکه', 'security': 'امنیت', 'action': 'عملیات', 'expiry': 'انقضا', 'connTh': 'اتصال',
     'confirmDeleteUser': 'آیا از حذف این کاربر اطمینان دارید؟', 'confirmDeleteInbound': 'آیا از حذف این اینباند اطمینان دارید؟', 'keysGenerated': 'کلیدهای Reality تولید شد', 'errKeyGen': 'خطا در تولید کلید', 'shortIdGen': 'Short ID تولید شد', 'shortIdNew': 'Short ID جدید تولید شد',
     'inboundUpdated': 'اینباند بروزرسانی شد', 'inboundCreated': 'اینباند ایجاد شد', 'updateInbound': 'بروزرسانی اینباند', 'inboundDeleted': 'اینباند حذف شد',
     'srv': 'وضعیت زنده سرور', 'cpu': 'پردازنده', 'ram': 'حافظه رم', 'disk': 'دیسک', 'sent': 'ارسال', 'recv': 'دریافت', 'activeUsers': 'کاربران فعال/کل', 'trafficUsed': 'ترافیک مصرفی', 'activeConns': 'اتصالات فعال', 'uptime': 'زمان فعالیت',
@@ -2190,10 +2283,10 @@ var I18N = {
     'login': { 'signIn': 'Sign In' }
   },
   en: {
-    'dash': 'Dashboard', 'navGroup': 'Management', 'advanced': 'Advanced', 'networkTotal': 'Total sent + received', 'users': 'Users', 'inbounds': 'Inbounds', 'scanner': 'IP Scanner', 'worker': 'Worker', 'settings': 'Settings', 'contact': 'Contact Me', 'logout': 'Logout',
+    'dash': 'Dashboard', 'navGroup': 'Management', 'advanced': 'Advanced', 'networkTotal': 'Total sent + received', 'users': 'Users', 'inbounds': 'Inbounds', 'scanner': 'IP Scanner', 'worker': 'Worker', 'settings': 'Settings', 'contact': 'Contact Me', 'features': 'Features', 'logout': 'Logout',
     'workerSetupTip': 'Connect the panel to Cloudflare to create a dedicated Pages project, deploy worker.js, and attach a private KV namespace automatically.', 'cfToken': 'Cloudflare API Token', 'getToken': 'Get Token', 'cfAccountId': 'Account ID', 'cfWorkerName': 'Worker Name', 'cfWorkerDomain': 'Worker Domain', 'createNewWorker': 'Create New Worker', 'cfConnect': 'Connect & Deploy', 'connected': 'Connected', 'disconnected': 'Disconnected', 'workerStatus': 'Status', 'remoteStatus': 'Remote Status', 'lastHeartbeat': 'Last Heartbeat', 'workerId': 'Pages Project', 'kvId': 'KV ID', 'onlineUsers': 'Online Users', 'workerTraffic': 'Worker Traffic', 'workerUrl': 'Worker URL', 'lastSync': 'Last Sync', 'lastError': 'Last Error', 'proxyPool': 'Proxy IP Pool', 'addProxy': 'Add Country', 'workerSettings': 'Worker Settings', 'removeConn': 'Remove Worker Connection', 'noProxyYet': 'No country added yet', 'connecting': 'Creating...', 'workerConnected': 'New worker created & deployed', 'syncing': 'Syncing...', 'synced': 'Synced', 'confirmRemoveWorker': 'Remove the Worker connection?', 'workerRemoved': 'Worker connection removed', 'proxyCodePrompt': 'Country code (e.g. de):', 'proxyCountryPrompt': 'Country name:', 'proxyHostPrompt': 'Proxy IP host (e.g. de.example.com):', 'proxyPortPrompt': 'Proxy IP port:', 'proxySaved': 'Country saved, worker updated', 'confirmDelProxy': 'Delete this country?', 'proxyDeleted': 'Country deleted', 'workerFillAll': 'Fill in all fields', 'workerProxyEnabled': 'Worker Proxy IP', 'workerProxyNone': 'No Proxy', 'workerRouteTip': 'The user config is built on the Pages Worker domain with the /ws/{uuid} path.', 'workerAutoName': 'A dedicated Pages project is created with a random name (spider-xxxxxx) and its own dedicated KV — no project name is needed.', 'proxySource': 'Daily Proxy Source', 'autoSyncHourly': 'Auto-update (hourly)', 'updateNow': 'Update Now', 'updatingFromSource': 'Updating from source', 'sourceUpdated': 'Updated', 'sourceError': 'Failed to update source', 'countries': 'countries', 'syncsDone': 'Syncs done', 'pickCountry': 'Pick a country',
     'tab.dash': 'Dashboard', 'tab.users': 'Manage Users', 'tab.inbounds': 'Manage Inbounds', 'tab.scanner': 'IP Scanner', 'tab.settings': 'Settings',
-    'inboundFixedHint': 'Only the panel’s default inbounds are used. WS/TLS is ready automatically with the panel’s main domain; fill Reality’s domain & ports yourself (pbk is auto-generated).', 'inboundFixed': 'Adding inbounds is disabled — only the default inbounds.', 'inboundAuto': 'This inbound is automatic — nothing to configure.', 'httpWsForwarding': 'HTTP + WS Port Forwarding', 'httpWsForwardingHint': 'Public port 80 accepts the WebSocket and SpiderPanel forwards it internally to TLS on port 443.',
+    'inboundFixedHint': 'Only the panel’s default inbounds are used. WS/TLS is ready automatically with the panel’s main domain; fill Reality’s domain & ports yourself (pbk is auto-generated).', 'inboundFixed': 'Adding inbounds is disabled — only the default inbounds.', 'inboundAuto': 'This inbound is automatic — nothing to configure.',
     'newUser': 'New User', 'newInbound': 'New Inbound', 'domain': 'Domain',
     'loading': 'Loading...', 'noUsers': 'No users found', 'noInbounds': 'No inbounds found', 'errLoadUsers': 'Error loading users', 'errLoadInbounds': 'Error loading inbounds', 'errLoadStats': 'Error loading stats',
     'live': '● LIVE', 'liveBadge': 'LIVE', 'cloudflareTitle': 'Cloudflare', 'railwayTitle': 'Railway', 'tcpTitle': 'TCP', 'advancedTitle': 'Advanced', 'sniTitle': 'SNI', 'workerMainTitle': 'Worker',
@@ -2207,6 +2300,7 @@ var I18N = {
     'red': 'Red', 'green': 'Green', 'blue': 'Blue',
     'panelMusic': 'Panel Music', 'bgMusic': 'Background Music', 'toggleMusic': 'On/Off', 'changePassword': 'Change Password', 'curPass': 'Current Password', 'newPass': 'New Password', 'changePassBtn': 'Change Password',
     'contactSub': 'Get in touch with me for support and collaboration',
+    'featuresSub': 'Enabled plugins rewrite every generated config — no rebuild, one click to toggle.', 'featOn': 'Plugin enabled', 'featOff': 'Plugin disabled', 'featUpdate': 'Update', 'featRepo': 'Repo', 'featUrlPh': 'plugins.json URL or a repository link', 'featInstallByUrl': 'Add from URL', 'featNone': 'No plugin installed yet — add one from the URL above or paste JSON below.', 'featRawJson': 'Plugin from JSON', 'featSave': 'Save plugin', 'featValidate': 'Validate JSON', 'featUsers': 'User Management', 'featUsersD': 'Create and manage users, traffic, limits, links and account actions', 'featSub': 'Subscription', 'featSubD': 'Subscription page, config links, QR code and quick copy', 'featNodes': 'Nodes', 'featNodesD': 'Node management, health check, refresh and sync', 'featScanner': 'IP Scanner', 'featScannerD': 'TCP, IP and SNI checks with copyable results', 'featBot': 'Telegram Bot', 'featBotD': 'Bot management, channels and sales flows', 'featSell': 'Sell Bot', 'featSellD': 'Plans, receipts, manual approval and subscription delivery', 'featExpire': 'Expiry', 'featExpireD': 'Delete and clean up expired accounts with notifications', 'featTools': 'Tools', 'featToolsD': 'Worker, Tunnel, Runtime and helper tools',
     'createUser': 'Create New User', 'editUser': 'Edit User', 'username': 'Username', 'conn': 'Concurrent Connections', 'volume': 'Traffic', 'unit': 'Unit', 'expire': 'Expiry', 'day': 'Day', 'month': 'Month',
     'inboundsMulti': 'Inbounds (multi-select)', 'noInboundOpt': 'No inbounds available',
     'inboundPickHint': 'Each inbound shows its own options: Worker → choose countries, TLS → scanned-IP switch, Reality → no extra options.',
@@ -2229,7 +2323,7 @@ var I18N = {
     'extDomain': 'External Domain', 'extPortCfg': 'External Port', 'extDomainPlace': 'External domain shown in the client config', 'commaSep': 'Separate with commas',
     'intPort': 'Main port (the port the server listens on)', 'extPortCfg2': 'External Port (config)', 'portHint': 'Internal port = what Xray listens on. External port = what appears in the config (config address: domain:external_port).',
     'network': 'Network', 'serviceName': 'Service Name', 'createInbound': 'Create Inbound', 'editInbound': 'Edit Inbound', 'inboundCreated': 'Inbound saved successfully',
-    'config': 'Config', 'copy': 'Copy', 'close': 'Close', 'copied': 'Config copied', 'noCfg': 'No config available', 'errCopy': 'Copy failed', 'notFound': 'Not found', 'delete': 'Delete', 'edit': 'Edit', 'unlimited': 'Unlimited', 'expired': 'Expired', 'daysUnit': ' days', 'default': 'Default', 'usersCount': 'Users', 'secNetwork': 'Network', 'security': 'Security', 'encryption': 'Encryption', 'action': 'Actions', 'expiry': 'Expiry', 'connTh': 'Conn',
+    'config': 'Config', 'copy': 'Copy', 'close': 'Close', 'copied': 'Config copied', 'noCfg': 'No config available', 'errCopy': 'Copy failed', 'notFound': 'Not found', 'delete': 'Delete', 'edit': 'Edit', 'unlimited': 'Unlimited', 'expired': 'Expired', 'daysUnit': ' days', 'default': 'Default', 'usersCount': 'Users', 'secNetwork': 'Network', 'security': 'Security', 'action': 'Actions', 'expiry': 'Expiry', 'connTh': 'Conn',
     'confirmDeleteUser': 'Are you sure you want to delete this user?', 'confirmDeleteInbound': 'Are you sure you want to delete this inbound?', 'keysGenerated': 'Reality keys generated', 'errKeyGen': 'Key generation failed', 'shortIdGen': 'Short ID generated', 'shortIdNew': 'New Short ID generated',
     'inboundUpdated': 'Inbound updated', 'inboundCreated': 'Inbound created', 'updateInbound': 'Update Inbound', 'inboundDeleted': 'Inbound deleted',
     'srv': 'Live Server Status', 'cpu': 'CPU', 'ram': 'RAM', 'disk': 'Disk', 'sent': 'Sent', 'recv': 'Received', 'activeUsers': 'Active / Total Users', 'trafficUsed': 'Traffic Used', 'activeConns': 'Active Connections', 'uptime': 'Uptime',
@@ -2499,6 +2593,196 @@ function updateGreeting() {
   $id('grt').innerHTML = g + sep + t('admin') + '</strong>';
 }
 
+// ─── Features / Plugins ───
+var _featData = { plugins: [], enabled: {}, repo: '', errors: [] };
+
+function featEsc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+
+async function featLoad() {
+  var list = $id('feat-list');
+  if (!list) return;
+  try {
+    list.innerHTML = '<div class="empty">' + t('loading') + '</div>';
+    var d = await api('/api/plugins');
+  _featData = d;
+  // Pre-fill the URL box with the saved (or default) repo so the Update
+  // button works with a single click, no typing needed.
+  var urlEl = $id('feat-url');
+  var effRepo = d.repo || d.defaultRepo || '';
+  if (urlEl && effRepo && !urlEl.value.trim()) urlEl.placeholder = effRepo;
+  var repoEl = $id('feat-repo-hint');
+  if (repoEl) {
+    if (effRepo) {
+      repoEl.style.display = 'block';
+      repoEl.innerHTML = '📦 Repo: <code dir="ltr" style="font-size:10px">' + featEsc(effRepo) + '</code>';
+    } else {
+      repoEl.style.display = 'none';
+      repoEl.innerHTML = '';
+    }
+  }
+  if (!d.plugins || !d.plugins.length) {
+    list.innerHTML = '<div class="empty">' + (t('featNone') || 'هنوز پلاگینی نصب نشده — از URL بالا اضافه کنید یا JSON را پایین تایپ کنید.') + '</div>';
+    return;
+  }
+  var html = '<div class="spd-acc-list">';
+  d.plugins.forEach(function(p) {
+    var pid = p.id;
+    var hooks = (p.hooks || []).join(', ');
+    var ver = p.version ? 'v' + featEsc(p.version) : '';
+    var author = p.author ? ' · ' + featEsc(p.author) : '';
+    var error = p.error ? '<span style="color:var(--red);font-size:10px"> · ⚠ ' + featEsc(p.error) + '</span>' : '';
+    var source = p.source ? '<span style="font-size:10px;color:var(--txt2)">· ' + featEsc(p.source) + '</span>' : '';
+
+    // Build details HTML (supports string or array of strings/bullets)
+    var det = (p.details || []);
+    if (typeof det === 'string') det = [det];
+    var detHtml = '';
+    if (det.length) {
+      var lines = [];
+      det.forEach(function(ln) {
+        if (typeof ln === 'string' && /^ *- /.test(ln)) {
+          lines.push('<li style="margin:0;padding-left:8px">' + featEsc(ln.replace(/^ *- /,'')) + '</li>');
+        } else {
+          lines.push('<li style="margin:0;padding-left:8px">' + featEsc(ln) + '</li>');
+        }
+      });
+      if (lines.length) detHtml = '<ol style="margin:6px 0 4px 16px;padding:0;font-size:11px;color:var(--txt2);line-height:1.7">' + lines.join('') + '</ol>';
+    }
+
+    // Switch ID — id="feat-sw-<pid>" needs a valid id (letters/numbers/-/_ only)
+    var swId = 'feat-sw-' + pid.replace(/[^a-zA-Z0-9_-]/g, '_');
+    var swClass = p.enabled ? 'on' : '';
+    var actionBtn = p.readonly ? ''
+      : '<button class="btn btn-sm btn-g" onclick="featEdit(\'' + featEsc(pid).replace(/'/g, "\\\\'") + '\')">ویرایش</button>'
+      + '<button class="btn btn-sm btn-g" style="color:var(--red)" onclick="featDelete(\'' + featEsc(pid).replace(/'/g, "\\\\'") + '\')">حذف</button>';
+
+    html += '<div class="spd-acc" id="feata-' + featEsc(pid) + '">'
+          + '<div class="spd-acc-head" role="button" tabindex="0" onclick="spdToggleAcc(' + JSON.stringify(pid) + ',this)" aria-expanded="false">'
+          + '  <span class="spd-acc-title" style="display:flex;align-items:center;gap:8px">'
+          + '    <span style="font-weight:700;font-size:13px">' + featEsc(p.name) + '</span>'
+          + '    <span style="font-size:10px;color:var(--txt2);font-weight:400">' + featEsc(ver) + featEsc(author) + error + source + '</span>'
+          + '    <span style="font-size:10px;color:#7b6cff">{' + featEsc(hooks) + '}</span>'
+          + '  </span>'
+          + '  <button type="button" class="ios-switch ' + swClass + '" id="' + swId + '" onclick="event.stopPropagation();featSwitch(' + JSON.stringify(pid) + ',this)" aria-label="toggle ' + featEsc(p.name) + '"></button>'
+          + '  <span class="material-symbols-outlined spd-acc-arrow">expand_more</span>'
+          + '</div>'
+          + '<div class="spd-acc-body" id="acc-' + featEsc(pid) + '">'
+          + '  <div class="feat-desc" style="font-size:12px;color:var(--txt2);line-height:1.7;margin-bottom:8px">' + featEsc(p.description || '') + '</div>'
+          + (detHtml ? '<div style="border-top:1px solid var(--border);padding-top:8px">' + detHtml + '</div>' : '')
+          + '  <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">' + actionBtn + '</div>'
+          + '</div></div>';
+  });
+  html += '</div>';
+  list.innerHTML = html;
+  } catch (e) {
+    list.innerHTML = '<div class="empty" style="color:var(--red)">' + (e.message || 'بارگذاری پلاگین‌ها ناموفق بود') + '</div>';
+  }
+}
+
+async function featSwitch(pid, sw) {
+  var on = !sw.classList.contains('on');
+  sw.classList.toggle('on', on);
+  try {
+    var r = await api('/api/plugins/toggle', {method:'POST', body: JSON.stringify({id: pid, enabled: on})});
+    toast(on ? t('featOn') : t('featOff'), 'ok');
+    if (r && !r.ok) { sw.classList.toggle('on', !on); }
+  } catch(e) {
+    sw.classList.toggle('on', !on);
+    toast(e.message || 'error', 'error');
+  }
+}
+
+// Legacy single-button toggle (kept for direct calls / external use)
+async function featToggle(id, on) {
+  var sw = $id('feat-sw-' + String(id).replace(/[^a-zA-Z0-9_-]/g,'_'));
+  if (sw) sw.classList.toggle('on', !!on);
+  try { await api('/api/plugins/toggle', {method:'POST', body: JSON.stringify({id: id, enabled: !!on})}); toast(on ? t('featOn') : t('featOff'), 'ok'); } catch(e) { if (sw) sw.classList.toggle('on', !on); toast(e.message || 'error', 'error'); }
+  featLoad();
+}
+
+async function featDelete(id) {
+  if (!confirm('این پلاگین حذف شود؟')) return;
+  try { await api('/api/plugins/' + encodeURIComponent(id), {method:'DELETE'}); toast('حذف شد', 'ok'); } catch(e) { toast(e.message || 'error', 'error'); }
+  featLoad();
+}
+
+async function featEdit(id) {
+  try {
+    var r = await api('/api/plugins/' + encodeURIComponent(id) + '/raw');
+    $id('feat-raw').value = JSON.stringify(JSON.parse(r.json), null, 2);
+    $id('feat-raw-msg').textContent = 'id: ' + id + '  (ذخیره = overwrite)';
+    $id('feat-raw').scrollIntoView({behavior: 'smooth'});
+  } catch(e) { toast(e.message || 'error', 'error'); }
+}
+
+async function featSaveRaw() {
+  var raw = $id('feat-raw').value.trim();
+  if (!raw) { $id('feat-raw-msg').textContent = 'JSON خالی است'; return; }
+  try {
+    JSON.parse(raw);
+  } catch (e) { $id('feat-raw-msg').textContent = 'غلط JSON: ' + e.message; return; }
+  try {
+    var r = await api('/api/plugins/save', {method:'POST', body: JSON.stringify({json: raw})});
+    if (!r.ok) { $id('feat-raw-msg').textContent = (r.errors || []).join(' | '); return; }
+    $id('feat-raw-msg').textContent = 'ذخیره شد: ' + r.id;
+  } catch(e) { $id('feat-raw-msg').textContent = e.message || 'error'; }
+  featLoad();
+}
+
+async function featValidateRaw() {
+  var raw = $id('feat-raw').value.trim();
+  if (!raw) { $id('feat-raw-msg').textContent = 'JSON خالی است'; return; }
+  try {
+    var obj = JSON.parse(raw);
+    var pid = obj.id || 'draft';
+    var r = await api('/api/plugins/' + encodeURIComponent(pid) + '/validate', {method:'POST', body: JSON.stringify({json: raw})});
+    $id('feat-raw-msg').textContent = r.ok ? '✅ ساختار درست است' : '❌ ' + (r.errors || []).join(' · ');
+  } catch(e) { $id('feat-raw-msg').textContent = 'غلط JSON: ' + e.message; }
+}
+
+async function featInstallByUrl() {
+  var url = $id('feat-url').value.trim();
+  if (!url) { $id('feat-raw-msg').textContent = 'URL را وارد کنید'; return; }
+  try {
+    var r = await api('/api/plugins/install', {method:'POST', body: JSON.stringify({url: url, remember: false})});
+    var msg = 'نصب: ' + (r.installed || []).join(', ');
+    if ((r.errors || []).length) msg += ' | خطا: ' + r.errors.join(' ');
+    if ((r.rejected || []).length) msg += ' | ردشده: ' + r.rejected.map(x => x.id).join(', ');
+    $id('feat-raw-msg').textContent = msg;
+  } catch(e) { $id('feat-raw-msg').textContent = e.message || 'error'; }
+  featLoad();
+}
+
+async function featSync() {
+  var btn = $id('feat-update-btn');
+  if (btn) { btn.disabled = true; btn.classList.add('loading'); }
+  var msg = $id('feat-raw-msg');
+  if (msg) msg.textContent = 'در حال دریافت پلاگین‌ها…';
+  try {
+    var body = {};
+    var url = $id('feat-url').value.trim();
+    if (url) body.url = url;
+    var r = await api('/api/plugins/sync', {method:'POST', body: JSON.stringify(body)});
+    var parts = [];
+    if ((r.installed || []).length) parts.push('نصب/به‌روزرسانی: ' + r.installed.join(', '));
+    if ((r.failed || []).length) parts.push('خطا: ' + r.failed.map(x => x.id || x.url).join(', '));
+    if (!parts.length) parts.push('پلاگین جدیدی پیدا نشد');
+    if (msg) msg.textContent = parts.join(' | ');
+  } catch(e) { if (msg) msg.textContent = e.message || 'error'; }
+  finally { if (btn) { btn.disabled = false; btn.classList.remove('loading'); } }
+  featLoad();
+}
+
+async function featRepoDialog() {
+  var url = prompt('آدرس Repo / Bundle پلاگین‌ها را وارد کنید:', _featData.repo || '');
+  if (!url) return;
+  try {
+    await api('/api/plugins/repo', {method:'POST', body: JSON.stringify({url: url})});
+    $id('feat-url').value = url;
+    featSync();
+  } catch(e) { alert(e.message || 'error'); }
+}
+
 // ─── Navigation ───
 function toggleNavAccordion(forceOpen) {
   var wrap = $id('main-nav-accordion');
@@ -2534,7 +2818,7 @@ function toggleNodeAccordion(btn) {
 }
 
 function switchTab(tab, el) {
-  if (['users','inbounds','scanner','worker','bot','settings'].indexOf(tab) >= 0) toggleNavAccordion(true);
+  if (['users','inbounds','scanner','worker','bot','settings','features'].indexOf(tab) >= 0) toggleNavAccordion(true);
   document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
   if (el) el.classList.add('active');
   var content = document.querySelector('.content');
@@ -2577,6 +2861,7 @@ function switchTab(tab, el) {
   if (tab === 'tunnel') loadTunnel();
   if (tab === 'nodes') loadNodes();
   if (tab === 'bot') loadBot();
+  if (tab === 'features') featLoad();
   closeSidebar();
 }
 
@@ -2850,7 +3135,7 @@ function renderEditInboundPicker(u) {
       '<div class="ib-pick-ic"><span class="material-symbols-outlined">' + (type === 'worker' ? 'bolt' : 'cloud') + '</span></div>' +
       '<div class="ib-pick-info">' +
         '<div class="ib-pick-name">' + esc(ib.name) + '</div>' +
-        '<div class="ib-pick-meta">' + esc(inboundUiMeta(ib)) + '</div>' +
+        '<div class="ib-pick-meta">' + esc(proto + ' · ' + (ib.network || 'ws') + ' · ' + (ib.security || 'tls')) + '</div>' +
       '</div>' +
       '<div class="ib-pick-check"><span class="material-symbols-outlined">check</span></div>' +
     '</div>';
@@ -3000,28 +3285,6 @@ async function loadInbounds() {
   }
 }
 
-function isDefaultHttpWsInboundUI(ib) {
-  if (!ib) return false;
-  return String(ib.name || '').trim() === 'پیش‌فرض HTTP + WS' &&
-         String(ib.protocol || '').toLowerCase() === 'vless' &&
-         String(ib.network || '').toLowerCase() === 'ws' &&
-         String(ib.security || '').toLowerCase() === 'none';
-}
-
-function isDefaultTlsWsInboundUI(ib) {
-  if (!ib) return false;
-  return String(ib.name || '').trim() === 'پیش‌فرض TLS + WS' &&
-         String(ib.protocol || '').toLowerCase() === 'vless' &&
-         String(ib.network || '').toLowerCase() === 'ws' &&
-         String(ib.security || '').toLowerCase() === 'tls';
-}
-
-function inboundUiMeta(ib) {
-  if (isDefaultHttpWsInboundUI(ib)) return 'VLESS · WS · NONE · 80 → 443';
-  if (isDefaultTlsWsInboundUI(ib)) return 'VLESS · WS · TLS · 443';
-  return (String(ib.protocol || 'vless').toUpperCase() + ' · ' + String(ib.network || 'ws').toUpperCase() + ' · ' + String(ib.security || 'tls').toUpperCase());
-}
-
 function _ibDetail(ib) {
   var proto = (ib.protocol || 'vless').toLowerCase();
   var d = '<div style="font-size:11px;color:var(--txt2);line-height:1.8">';
@@ -3036,17 +3299,9 @@ function _ibDetail(ib) {
   } else if (ib.protocol === 'reality' || ib.security === 'reality') {
     d += t('domain') + ': ' + (ib.external_domain || '—') + '<br>';
     d += t('port') + ': ' + (ib.port || '—');
-  } else if (isDefaultHttpWsInboundUI(ib)) {
-    var fwd = ib.forwarding || {};
-    var fromPort = fwd.from_port || ib.external_port || 80;
-    var toPort = fwd.to_port || ib.port || 443;
-    d += t('domain') + ': ' + (ib.external_domain || ib.domain || '—') + ' (خودکار)<br>';
-    d += '<span class="ib-forward-badge">80 → 443 · WS / WSS relay</span><br>';
-    d += t('security') + ': none · ' + t('encryption') + ': none';
-    d += '<div class="ib-forward-box"><div class="ib-forward-row"><span class="ib-forward-label">Port Forwarding</span><span class="ib-forward-badge">' + esc(String(fromPort)) + ' → ' + esc(String(toPort)) + '</span></div></div>';
   } else {
     d += t('domain') + ': ' + (ib.external_domain || '—') + ' (خودکار)<br>';
-    d += t('port') + ': ' + (ib.port || 443) + ' / relay';
+    d += t('port') + ': 443 / relay';
   }
   if (proto !== 'telegram') {
     d += '<br>' + t('secNetwork') + ': ' + (ib.network || 'tcp') + ' | ' + t('security') + ': ' + (ib.security || 'none');
@@ -3064,10 +3319,9 @@ function renderInbounds() {
     var ib = ALL_IB[i];
     var proto = (ib.protocol || 'vless').toLowerCase();
     var protoBadge = proto === 'reality' ? 'badge-p' : 'badge-b';
-    var managedBadge = isDefaultHttpWsInboundUI(ib) ? '<span class=\"ib-managed\">AUTO · 80 → 443</span>' : (isDefaultTlsWsInboundUI(ib) ? '<span class=\"ib-managed\">AUTO · 443</span>' : '');
     html += '<div class="spd-acc">' +
       '<button type="button" class="spd-acc-head" onclick="spdToggleAcc(\'ia-' + ib.inbound_id + '\',this)" aria-expanded="false">' +
-        '<span class="spd-acc-title"><strong>' + esc(ib.name) + '</strong>' + managedBadge + '</span>' +
+        '<span class="spd-acc-title"><strong>' + esc(ib.name) + '</strong></span>' +
         '<span class="spd-acc-badges"><span class="badge ' + protoBadge + '">' + proto.toUpperCase() + '</span></span>' +
         '<span class="material-symbols-outlined spd-acc-arrow">expand_more</span>' +
       '</button>' +
@@ -3148,15 +3402,31 @@ function onInboundTypeChange() {
 function onNetworkChange() {
   var net = $id('ib-network').value;
   toggleById('ib-ws-fields', net === 'ws');
+  toggleById('ib-httpupgrade-fields', net === 'httpupgrade');
   toggleById('ib-xhttp-fields', net === 'xhttp');
   toggleById('ib-grpc-fields', net === 'grpc');
+  toggleById('ib-http-fields', net === 'http');
+  toggleById('ib-kcp-fields', net === 'kcp');
+  toggleById('ib-ss-method-wrap', $id('ib-protocol').value === 'shadowsocks');
+}
+function onProtocolChange() {
+  var proto = $id('ib-protocol').value;
+  toggleById('ib-ss-method-wrap', proto === 'shadowsocks');
+  // Reality can only be served by Xray over VLESS.
+  if (proto !== 'vless' && $id('ib-security').value === 'reality') {
+    $id('ib-security').value = 'tls';
+    onSecurityChange();
+  }
 }
 
 function toggleById(id, show) { var el = $id(id); if (el) { if (show) el.classList.remove('hidden'); else el.classList.add('hidden'); } }
 
 function onDomainChange() {
   var d = $id('ib-domain').value;
-  if (d) $id('ib-sni').value = d;
+  if (d) {
+    if (!$id('ib-sni').value) $id('ib-sni').value = d;
+    if (!$id('ib-dest').value) $id('ib-dest').value = d + ':443';
+  }
 }
 
 async function generateRealityKeysUI() {
@@ -3277,31 +3547,34 @@ function openCreateInbound() {
   $id('ib-inbound-type').value = 'config';
   $id('ib-port').value = '443';
   $id('ib-security').value = 'tls';
+  $id('ib-protocol').value = 'vless';
   $id('ib-network').value = 'ws';
   $id('ib-extdomain').value = '';
   $id('ib-extport').value = '443';
   $id('ib-sni').value = '';
+  $id('ib-dest').value = '';
   $id('ib-privkey').value = '';
   $id('ib-pubkey').value = '';
   $id('ib-shortids').value = '';
   $id('ib-spiderx').value = '/';
-  $id('ib-wspath').value = '/';
-  $id('ib-xhttppath').value = '/';
-  $id('ib-xhttp-mode').value = 'auto';
-  $id('ib-grpc-svc').value = 'grpc';
+  $id('ib-wspath').value = '/all/{uuid}';
+  $id('ib-hupath').value = '/all/{uuid}';
+  $id('ib-xhttppath').value = '/all/{uuid}/';
+  $id('ib-xhttp-mode').value = 'stream-up';
+  $id('ib-grpc-svc').value = 'all/{uuid}';
+  $id('ib-httppath').value = '/all/{uuid}';
+  $id('ib-kcp-seed').value = 'all';
+  $id('ib-ss-method').value = 'aes-256-gcm';
   $id('ib-submit').textContent = t('createInbound');
   onInboundTypeChange();
   onSecurityChange();
   onNetworkChange();
-  toggleManagedHttpUi(false);
   openModal('mod-inbound');
 }
 
 async function editInbound(iid) {
   var ib = ALL_IB.find(function(x) { return x.inbound_id === iid; });
   if (!ib) return;
-  // Reset any managed HTTP+WS field locks from a previous modal open.
-  toggleManagedHttpUi(false);
   var isReality = (ib.protocol === 'reality' || ib.security === 'reality');
   var isTg = (ib.protocol || '').toLowerCase() === 'telegram';
   var isNode = ((ib.protocol || '').toLowerCase() === 'node' || ib.inbound_id === 'Node' || ib.system === true);
@@ -3310,17 +3583,35 @@ async function editInbound(iid) {
   $id('ib-id').value = iid;
   $id('ib-name').value = ib.name || '';
   $id('ib-inbound-type').value = isTg ? 'telegram' : 'config';
-  $id('ib-sni').value = ib.sni || 'is1-ssl.mzstatic.com';
   var rs = ib.reality_settings || {};
+  // SNI and dest are separate fields now. Prefer the inbound's own sni; fall
+  // back to the first serverName for inbounds saved before the split.
+  var _sniVal = ib.sni || (rs && rs.sni) || (rs && (rs.server_names || [])[0]) || 'is1-ssl.mzstatic.com';
+  $id('ib-sni').value = _sniVal;
+  $id('ib-dest').value = (rs && rs.dest) || (_sniVal + ':443');
   $id('ib-privkey').value = (rs || {}).private_key || '';
   $id('ib-pubkey').value = (rs || {}).public_key || '';
   $id('ib-shortids').value = (rs || {}).short_id || '';
   $id('ib-spiderx').value = (rs || {}).spiderx || '/';
   var ws = ib.ws_settings || {}; var xh = ib.xhttp_settings || {};
-  $id('ib-wspath').value = ws.path || '/';
-  $id('ib-xhttppath').value = xh.path || '/';
-  $id('ib-xhttp-mode').value = xh.mode || 'auto';
-  $id('ib-grpc-svc').value = (ib.grpc_settings || {}).serviceName || 'grpc';
+  var hu = ib.httpupgrade_settings || {}; var http = ib.http_settings || {};
+  var kcp = ib.kcp_settings || {}; var ss = ib.shadowsocks_settings || {};
+  // Load every transport's template so editing an inbound never silently
+  // drops the path (which would break every client of it after save).
+  $id('ib-wspath').value = ws.path || '/all/{uuid}';
+  $id('ib-hupath').value = hu.path || '/all/{uuid}';
+  $id('ib-xhttppath').value = xh.path || '/all/{uuid}/';
+  $id('ib-xhttp-mode').value = xh.mode || 'stream-up';
+  $id('ib-grpc-svc').value = (ib.grpc_settings || {}).serviceName || 'all/{uuid}';
+  $id('ib-httppath').value = http.path || '/all/{uuid}';
+  $id('ib-kcp-seed').value = kcp.seed || 'all';
+  $id('ib-ss-method').value = ss.method || 'aes-256-gcm';
+  // The link protocol is a per-inbound property. Reality can only be served by
+  // Xray over VLESS, so it is pinned to vless (the selector has no "reality"
+  // option — reality is selected through the Security dropdown instead).
+  var _protoPick = String(ib.protocol || '').toLowerCase();
+  if (isReality || ['vless','vmess','trojan','shadowsocks'].indexOf(_protoPick) < 0) _protoPick = 'vless';
+  $id('ib-protocol').value = _protoPick;
 
   // Node inbound is a selector only. No name/type/port/TLS/network fields are shown.
   if (isNode) {
@@ -3365,49 +3656,19 @@ async function editInbound(iid) {
     onNetworkChange();
     openModal('mod-inbound');
   } else {
-    // VLESS/TLS/WS/HTTP. Managed HTTP+WS keeps its public 80 -> internal 443 relay fixed.
-    var isManagedHttp = isDefaultHttpWsInboundUI(ib);
+    // VLESS/TLS/WS: allow editing the actual inbound instead of silently refusing.
     $id('ib-security').value = ib.security || 'tls';
     $id('ib-network').value = ib.network || 'ws';
-    $id('ib-port').value = ib.port || 443;
+    $id('ib-port').value = ib.port || '';
     $id('ib-extdomain').value = ib.external_domain || '';
-    $id('ib-extport').value = ib.external_port || (isManagedHttp ? 80 : 443);
+    $id('ib-extport').value = ib.external_port || 443;
     $id('ib-inbound-type').value = 'config';
     $id('ib-submit').textContent = t('updateInbound');
     onInboundTypeChange();
     onSecurityChange();
     onNetworkChange();
-    toggleManagedHttpUi(isManagedHttp, ib);
     openModal('mod-inbound');
   }
-}
-
-function toggleManagedHttpUi(enabled, ib) {
-  var existing = $id('ib-managed-forwarding');
-  if (existing) existing.remove();
-  var form = $id('mod-inbound') && $id('mod-inbound').querySelector('form');
-  if (!form || !enabled) {
-    var p = $id('ib-port');
-    var sec = $id('ib-security');
-    var net = $id('ib-network');
-    if (p) p.disabled = false;
-    if (sec) sec.disabled = false;
-    if (net) net.disabled = false;
-    return;
-  }
-  var box = document.createElement('div');
-  box.id = 'ib-managed-forwarding';
-  box.className = 'ib-forward-box';
-  box.innerHTML = '<div class="ib-forward-row"><span class="ib-forward-label">' + t('httpWsForwarding') + '</span><span class="ib-forward-badge">80 → 443</span></div>' +
-                  '<div style="font-size:10px;color:var(--txt2);margin-top:7px">' + t('httpWsForwardingHint') + '</div>';
-  var first = form.querySelector('.modal-btns');
-  if (first) form.insertBefore(box, first); else form.appendChild(box);
-  var p = $id('ib-port');
-  var sec = $id('ib-security');
-  var net = $id('ib-network');
-  if (p) { p.value = 443; p.disabled = true; }
-  if (sec) { sec.value = 'none'; sec.disabled = true; }
-  if (net) { net.value = 'ws'; net.disabled = true; }
 }
 
 async function submitInbound(e) {
@@ -3454,45 +3715,59 @@ async function submitInbound(e) {
   } else {
     // VLESS / TLS / Reality
     var network = $id('ib-network').value;
-    var managedHttp = iid && ALL_IB.some(function(x){ return String(x.inbound_id) === String(iid) && isDefaultHttpWsInboundUI(x); });
     var security = $id('ib-security').value;
     var sni = $id('ib-sni').value || 'is1-ssl.mzstatic.com';
     var internalPort = parseInt($id('ib-port').value, 10);
     body.port = Number.isFinite(internalPort) && internalPort > 0 ? internalPort : 443;
     body.network = network;
     body.security = security;
-    body.sni = sni;
-    if (managedHttp) {
-      body.port = 443;
-      body.network = 'ws';
-      body.security = 'none';
-      body.external_port = 80;
-      body.forwarding = {enabled:true, from_port:80, to_port:443, mode:'websocket-tls'};
+    body.protocol = $id('ib-protocol').value || 'vless';
+    if (body.protocol === 'shadowsocks') {
+      body.shadowsocks_settings = { method: $id('ib-ss-method').value || 'aes-256-gcm' };
     }
+    body.sni = sni;
     if (security === 'reality') {
+      // Reality is VLESS-only: silently coerce any non-VLESS protocol.
+      body.protocol = 'reality';
       body.external_port = parseInt($id('ib-extport').value) || null;
       body.external_domain = $id('ib-extdomain').value || '';
-      // For Reality: SNI is used as destination, server name, and SNI
-      var sniVal = $id('ib-sni').value || 'is1-ssl.mzstatic.com';
+      // SNI (client spoof) and dest (real dial target) are INDEPENDENT inputs.
+      // Never derive one from the other — these are Xray's `serverNames`
+      // versus `target`, and sharing a variable silently makes dest edits
+      // rewrite the client's SNI.
+      var sniVal = $id('ib-sni').value.trim() || 'is1-ssl.mzstatic.com';
+      var destVal = $id('ib-dest').value.trim() || (sniVal + ':443');
+      if (destVal.indexOf(':') < 0) destVal = destVal + ':443';
       body.reality_settings = {
         private_key: $id('ib-privkey').value || '',
         public_key: $id('ib-pubkey').value || '',
         short_id: $id('ib-shortids').value || '',
         spiderx: $id('ib-spiderx').value || '/',
-        dest: sniVal + ':443',
+        dest: destVal,
         server_names: [sniVal],
         sni: sniVal
       };
+    } else if (security === 'none') {
+      body.external_port = null;
+      body.external_domain = '';
     }
     if (network === 'ws') {
-      body.ws_settings = { path: $id('ib-wspath').value || '/' };
+      body.ws_settings = { path: $id('ib-wspath').value || '/all/{uuid}' };
+    } else if (network === 'httpupgrade') {
+      body.httpupgrade_settings = { path: $id('ib-hupath').value || '/all/{uuid}' };
     } else if (network === 'xhttp') {
       body.xhttp_settings = {
-        path: $id('ib-xhttppath').value || '/',
-        mode: $id('ib-xhttp-mode').value || 'auto'
+        path: $id('ib-xhttppath').value || '/all/{uuid}/',
+        mode: $id('ib-xhttp-mode').value || 'stream-up'
       };
     } else if (network === 'grpc') {
-      body.grpc_settings = { serviceName: $id('ib-grpc-svc').value || 'grpc' };
+      body.grpc_settings = { serviceName: $id('ib-grpc-svc').value || 'all/{uuid}' };
+    } else if (network === 'http') {
+      body.http_settings = { path: $id('ib-httppath').value || '/all/{uuid}' };
+    } else if (network === 'kcp') {
+      body.kcp_settings = { seed: $id('ib-kcp-seed').value || 'all', headerType: 'none' };
+    } else if (network === 'tcp') {
+      body.tcp_settings = { headerType: 'none' };
     }
   }
 
@@ -4168,7 +4443,12 @@ async function snPickFastest() {
   try {
     var r = await api('/api/scanner/sni-fastest');
     if (r.ok && r.sni) {
+      // The scanner returns a SNI, which is a client-facing value: it fills
+      // the SNI field and, only while dest has never been set, the dest too
+      // (dest defaults to sni:443). Once the admin has chosen a distinct dest,
+      // picking a new SNI must not silently repoint the dial target.
       $id('ib-sni').value = r.sni;
+      if (!$id('ib-dest').value) $id('ib-dest').value = r.sni + ':443';
       toast('سریع‌ترین SNI: ' + r.sni + ' (' + r.latency_ms + 'ms)', 'ok');
     } else {
       toast('هنوز SNI ذخیره نشده — ابتدا اسکن کنید', 'warn');
@@ -4832,7 +5112,7 @@ function cuRenderInboundOpts() {
     var selected = cuInboundState.picks[id] === true;
     var type = cuInboundType(ib);
     var proto = (ib.protocol || 'vless').toUpperCase();
-    var meta = inboundUiMeta(ib);
+    var meta = proto + ' · ' + (ib.network || 'ws').toUpperCase() + ' · ' + (ib.security || 'tls').toUpperCase();
     html += '<div class="ib-pick' + (selected ? ' selected' : '') + '" data-id="' + esc(id) + '" onclick="cuToggleIbPick(this)">' +
       '<div class="ib-pick-ic"><span class="material-symbols-outlined">' + (type === 'worker' ? 'bolt' : type === 'reality' ? 'shield' : 'cloud') + '</span></div>' +
       '<div class="ib-pick-info">' +

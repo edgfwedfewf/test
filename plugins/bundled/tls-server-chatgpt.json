@@ -1,0 +1,30 @@
+{
+  "apiVersion": "spiderpanel.plugin/v1",
+  "id": "tls-server-chatgpt",
+  "name": "TLS server -> chatgpt.com",
+  "description": "All TLS configs get server / host / sni set to chatgpt.com.",
+  "details": [
+    "When enabled, every client config with security=tls has three fields rewritten:",
+    "  - host  → chatgpt.com",
+    "  - sni   → chatgpt.com",
+    "  - server (the address the client connects to) → chatgpt.com",
+    "",
+    "Reality configs and non-TLS configs are untouched.",
+    "No rebuild is needed — toggle the switch and the next config generation picks it up immediately."
+  ],
+  "version": "1.0.0",
+  "author": "spiderpanel",
+  "enabledByDefault": false,
+  "hooks": {
+    "config": [
+      {
+        "match": { "security": "tls" },
+        "set": {
+          "host": "chatgpt.com",
+          "sni": "chatgpt.com",
+          "server": "chatgpt.com"
+        }
+      }
+    ]
+  }
+}

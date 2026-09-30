@@ -940,7 +940,9 @@ HOST=0.0.0.0
 DATA_DIR=$APP_DIR/data
 SPIDER_DATA_DIR=$APP_DIR/data
 XRAY_BIN=$XRAY
-MTPROTO_PROXY_BIN=$MTPROXY
+MTPROXY_BIN=$MTPROXY
+MTPROXY_WORKERS=1
+MTPROXY_STATS_BASE=18080
 WORKER_SYNC_INTERVAL=3600
 SPIDER_PANEL_PUBLIC_URL=
 SPIDER_PANEL_PUBLIC_DOMAIN=
@@ -1314,6 +1316,20 @@ start_panel() {
         cd "$APP_DIR"
 
 
+        # ── Load the environment ────────────────────────────────────────
+        # Outside systemd nothing reads $ENV_FILE for us: without `set -a`
+        # before `source`, the panel boots with the DEFAULT admin password
+        # and ignores DATA_DIR / XRAY_BIN / MTPROXY_BIN / SECRET_KEY, so
+        # `spiderpanel start` looks like it launched but comes up empty and
+        # cannot find Xray or MTProxy. This is the usual cause on a plain VPS.
+        if [[ -f "$ENV_FILE" ]]; then
+            set -a
+            # shellcheck disable=SC1090
+            source "$ENV_FILE"
+            set +a
+        fi
+
+
         nohup \
             "$VENV/bin/uvicorn" \
             main:app \
@@ -1573,6 +1589,74 @@ info_panel() {
         echo "Codespace URL: https://${CODESPACE_NAME}-8080.${domain}/spider"
 
         echo "Forward port 8080 in Codespaces."
+
+    fi
+
+
+    # ── Public domain + certificate ─────────────────────────────────────
+    # The panel discovers its own public host at runtime and stores it in the
+    # state file; the certificate lives next to the Xray binary. Report both so
+    # `spiderpanel info` shows a URL the user can actually open, plus the ACME
+    # expiry so a cert that stopped renewing is visible at a glance.
+    local public_domain=""
+    local cert_file="$APP_DIR/xray/certs/fullchain.pem"
+
+    public_domain="$(
+        grep '^SPIDER_PANEL_PUBLIC_DOMAIN=' "$ENV_FILE" 2>/dev/null \
+            | head -n1 | cut -d= -f2- | tr -d '[:space:]' \
+            || true
+    )"
+
+    if [[ -z "$public_domain" && -f "$APP_DIR/data/spider_state.json" ]]; then
+        public_domain="$(
+            jq -r '.settings.domain // empty' "$APP_DIR/data/spider_state.json" 2>/dev/null \
+            || true
+        )"
+    fi
+
+    if [[ -z "$public_domain" && -f "$cert_file" ]]; then
+        public_domain="$(
+            openssl x509 -noout -subject -in "$cert_file" 2>/dev/null \
+                | sed -n 's/.*CN[ ]*=[ ]*\([^,]*\).*/\1/p' | tr -d '[:space:]' \
+                || true
+        )"
+    fi
+
+    if [[ -z "$public_domain" ]]; then
+        public_domain="${DOMAIN:-${RAILWAY_PUBLIC_DOMAIN:-}}"
+    fi
+
+    echo
+
+    if [[ -n "$public_domain" ]]; then
+
+        echo "Public Domain: $public_domain"
+        echo "Panel URL: https://$public_domain/spider"
+        echo "TLS configs:      wss://$public_domain/all/<uuid>"
+        echo "Reality configs:  <reality-host>:/reality/<uuid>"
+
+    else
+
+        echo "Public Domain: pending — the panel resolves it at runtime;"
+        echo "                 set SPIDER_PANEL_PUBLIC_DOMAIN to pin one."
+
+    fi
+
+
+    if [[ -f "$cert_file" ]]; then
+
+        local cert_expiry=""
+        cert_expiry="$(
+            openssl x509 -enddate -noout -in "$cert_file" 2>/dev/null \
+                | cut -d= -f2- \
+                || true
+        )"
+        echo "TLS certificate: valid until ${cert_expiry:-unknown}"
+
+    else
+
+        echo "TLS certificate: none — Xray TLS inbounds stay disabled until one"
+        echo "                   is issued (spiderpanel certs --domain <host>)."
 
     fi
 

@@ -1,0 +1,14 @@
+{
+  "apiVersion": "spiderpanel.index/v1",
+  "name": "SpiderPanel official plugins",
+  "updated": "2026-09-29",
+  "plugins": [
+    {
+      "id": "tls-server-chatgpt",
+      "version": "1.0.0",
+      "url": "plugins/tls-server-chatgpt.json",
+      "sha256": null,
+      "description": "When enabled, every config with security=tls rewrites host / sni / server to chatgpt.com."
+    }
+  ]
+}
